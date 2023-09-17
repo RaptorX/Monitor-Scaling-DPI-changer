@@ -292,46 +292,50 @@ setDPI(monitorDevicePath, dpi_enum_value) {
 GetEnumDisplays()
 {
 	Displays := []
-	Loop MonitorGetCount()
-	{
-		Name := MonitorGetName(a_index)
-		EnumDisplayDevices(a_index - 1, &Display, 1)
-		if InStr(Display["DeviceName"],Name)
-			Displays.Push({Name:Name,Path:Display["DeviceID"]})
+	DisplayArray := EnumDisplayDevices()
+	for Display in DisplayArray
+		Displays.Push({Name:'Monitor ' A_Index, Path:Display["DeviceID"]})
 
-	}
 	return Displays
 }
 
 
-EnumDisplayDevices(iDevNum, &DISPLAY_DEVICEA:="", dwFlags:=0)    {
+EnumDisplayDevices(dwFlags:=1)    {
 	Static   EDD_GET_DEVICE_INTERFACE_NAME := 0x00000001
-			,byteCount              := 4+4+((32+128+128+128)*2)
-			,offset_cb              := 0
-			,offset_DeviceName      := 4                            ,length_DeviceName      := 32
-			,offset_DeviceString    := 4+(32*2)                     ,length_DeviceString    := 128
-			,offset_StateFlags      := 4+((32+128)*2)
-			,offset_DeviceID        := 4+4+((32+128)*2)             ,length_DeviceID        := 128
-			,offset_DeviceKey       := 4+4+((32+128+128)*2)         ,length_DeviceKey       := 128
+	         ,byteCount              := 4+4+((32+128+128+128)*2)
+	         ,offset_cb              := 0
+	         ,offset_DeviceName      := 4                            ,length_DeviceName      := 32
+	         ,offset_DeviceString    := 4+(32*2)                     ,length_DeviceString    := 128
+	         ,offset_StateFlags      := 4+((32+128)*2)
+	         ,offset_DeviceID        := 4+4+((32+128)*2)             ,length_DeviceID        := 128
+	         ,offset_DeviceKey       := 4+4+((32+128+128)*2)         ,length_DeviceKey       := 128
 
 	DISPLAY_DEVICEA:=""
-	if (iDevNum~="\D" || (dwFlags!=0 && dwFlags!=EDD_GET_DEVICE_INTERFACE_NAME))
+	if (dwFlags!=0 && dwFlags!=EDD_GET_DEVICE_INTERFACE_NAME)
 		return false
 	lpDisplayDevice:=Buffer(byteCount,0)            ,Numput("UInt",byteCount,lpDisplayDevice,offset_cb)
-	if !DllCall("EnumDisplayDevices", "Ptr",0, "UInt",iDevNum, "Ptr",lpDisplayDevice.Ptr, "UInt",0)
-		return false
-	if (dwFlags==EDD_GET_DEVICE_INTERFACE_NAME)    {
-		DeviceName:=StrGet(lpDisplayDevice.Ptr+offset_DeviceName, length_DeviceName)
-		lpDisplayDevice.__New(byteCount,0)          ,Numput("UInt",byteCount,lpDisplayDevice,offset_cb)
-		lpDevice:=Buffer(length_DeviceName*2,0)     ,StrPut(DeviceName, lpDevice,length_DeviceName)
-		DllCall("EnumDisplayDevices", "Ptr",lpDevice.Ptr, "UInt",0, "Ptr",lpDisplayDevice.Ptr, "UInt",dwFlags)
-	}
-	For k in (DISPLAY_DEVICEA:=Map("cb",0,"DeviceName","","DeviceString","","StateFlags",0,"DeviceID","","DeviceKey",""))    {
-		Switch k
-		{
-			case "cb","StateFlags":                 DISPLAY_DEVICEA[k]:=NumGet(lpDisplayDevice, offset_%k%,"UInt")
-			default:                                DISPLAY_DEVICEA[k]:=StrGet(lpDisplayDevice.Ptr+offset_%k%, length_%k%)
+
+	displayArray := []
+	loop MonitorGetCount()
+	{
+		mon_index := RegExReplace(MonitorGetName(A_Index), '\D')
+		if !DllCall("EnumDisplayDevices", "Ptr",0, "UInt", mon_index - 1, "Ptr",lpDisplayDevice.Ptr, "UInt",0)
+			return false
+		if (dwFlags==EDD_GET_DEVICE_INTERFACE_NAME)    {
+			DeviceName:=StrGet(lpDisplayDevice.Ptr+offset_DeviceName, length_DeviceName)
+			lpDisplayDevice.__New(byteCount,0)          ,Numput("UInt",byteCount,lpDisplayDevice,offset_cb)
+			lpDevice:=Buffer(length_DeviceName*2,0)     ,StrPut(DeviceName, lpDevice,length_DeviceName)
+			DllCall("EnumDisplayDevices", "Ptr",lpDevice.Ptr, "UInt",0, "Ptr",lpDisplayDevice.Ptr, "UInt",dwFlags)
 		}
+		For property in (DISPLAY_DEVICEA:=Map("cb",0,"DeviceName","","DeviceString","","StateFlags",0,"DeviceID","","DeviceKey",""))    {
+			Switch property
+			{
+				case "cb","StateFlags":                 DISPLAY_DEVICEA[property]:=NumGet(lpDisplayDevice, offset_%property%,"UInt")
+				default:                                DISPLAY_DEVICEA[property]:=StrGet(lpDisplayDevice.Ptr+offset_%property%, length_%property%)
+			}
+		}
+
+		displayArray.Push(DISPLAY_DEVICEA)
 	}
-	return true
+	return displayArray
 }

@@ -8,9 +8,9 @@
 /**
  * ============================================================================ *
  * Want a clear path for learning AutoHotkey?                                   *
- * Take a look at our AutoHotkey Udemy courses.                                 *
+ * Take a look at our AutoHotkey courses here: the-Automator.com/Learn          *
  * They're structured in a way to make learning AHK EASY                        *
- * Right now you can  get a coupon code here: https://the-Automator.com/Learn   *
+ * And come with a 200% moneyback guarantee so you have NOTHING to risk!        *
  * ============================================================================ *
  */
 tray := A_TrayMenu

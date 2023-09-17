@@ -54,6 +54,7 @@ ToolName := "Display Scalings"
 
 MyGui := Gui("+ToolWindow",ToolName)
 MyGui.OnEvent('Close', ProceedSetting)
+MyGui.OnEvent('Escape', ProceedSetting)
 
 MyGui.Add("CheckBox", "xm ym+3 w55 vWinKey", "Win")
 myPrefix := MyGui.Add("Hotkey", "x+m ym w100 vHotkey")
@@ -77,7 +78,7 @@ LV := MyGui.Add("ListView", "xm h200 w450",["Display","DPI Scale","Hotkey"])
 LV.OnEvent("Click", LVEvent)
 DeleteBtn := MyGui.Add("Button", "xm+350 Disabled", "Delete")
 DeleteBtn.OnEvent("Click", DeletLVRow)
-MyButton := MyGui.Add("Button","yp w55 default","Save").OnEvent("Click",ProceedSetting)
+MyButton := MyGui.Add("Button","yp w55 default","Save").OnEvent("Click", ProceedSetting)
 
 if FileExist(MonitorsIni)
 {
@@ -87,7 +88,7 @@ if FileExist(MonitorsIni)
 		RegExMatch(HDD[2],"(.*)\|(.*)",&DPIDisplay)
 		if DisplayPath.has(DPIDisplay[2]) ; adding only available displays to listview
 			LV.Add(,DPIDisplay[2],DPIDisplay[1],HDD[1])
-		try Hotkey HDD[1], "off"
+		try Hotkey HDD[1], "ON"
 	}
 }
 loop LV.GetCount("Column")
@@ -188,7 +189,7 @@ ProceedSetting(*)
 	Loop Rows
 	{
 		IniWrite(LV.GetText(a_index,2) "|" LV.GetText(a_index,1), MonitorsIni,"ScaleHotkeys", LV.GetText(a_index,3) )
-		Hotkey LV.GetText(a_index,3), (ThisHotkey) => SetScaleFactor(ThisHotkey)
+		Hotkey LV.GetText(a_index,3), (ThisHotkey) => SetScaleFactor(ThisHotkey), "ON"
 	}
 	MyGui.Hide()
 }

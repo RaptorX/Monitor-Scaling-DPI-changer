@@ -56,8 +56,8 @@ DPI_ENUM := map(
 ToolName := "Active Display Scalings"
 FirstRun := 1
 MyGui := Gui("",ToolName)
-MyGui.OnEvent('Close', (*)=>MyGui.Hide())
-MyGui.OnEvent('Escape', (*)=>MyGui.Hide())
+MyGui.OnEvent('Close', ProceedSetting)
+MyGui.OnEvent('Escape', ProceedSetting)
 
 MyGui.Add("CheckBox", "xm y8 vWinKey", "Win")
 myPrefix := MyGui.Add("Hotkey", "x+5 y5 w60 vHotkey")
@@ -78,7 +78,7 @@ if FileExist(MonitorsIni)
 	{
 		RegExMatch(HotkeyDpi,"(.*)=(.*)",&HD) ; HDD = 'H'otkey'D'pi'D'isplay
 		LV.Add(,HD[1],HD[2])
-		try Hotkey HD[1], "off"
+		try Hotkey HD[1], "ON"
 	}
 }
 else
@@ -86,7 +86,7 @@ else
 
 loop LV.GetCount("Column")
 	LV.ModifyCol(a_index,"autoHdr")
-MyGui.Show()
+
 if FirstRun
 	ProceedSetting()
 return
@@ -135,11 +135,17 @@ GuiReShow(*)
 	MyGui.Show()
 }
 
-CloseThis(*)
-{
-	;Exitapp
-	mygui.Hide()
-}
+; CloseThis(*)
+; {
+; 	;Exitapp
+; 	for i, HotkeyDpiDisplay in StrSplit(IniRead(MonitorsIni,"ScaleHotkeys",,""),"`n")
+; 	{
+; 		RegExMatch(HotkeyDpiDisplay,"(.*)=(.*)",&HDD) ; HDD = 'H'otkey'D'pi'D'isplay
+; 		RegExMatch(HDD[2],"(.*)\|(.*)",&DPIDisplay)
+; 		try Hotkey HDD[1], "ON"
+; 	}
+; 	mygui.Hide()
+; }
 
 AddHotkey(obj,info)
 {
@@ -179,7 +185,7 @@ ProceedSetting(*)
 	Loop Rows
 	{
 		IniWrite(LV.GetText(a_index,2), MonitorsIni,"ScaleHotkeys", LV.GetText(a_index,1) )
-		Hotkey key:=LV.GetText(a_index,1), (ThisHotkey) => SetScaleFactor(ThisHotkey)
+		Hotkey key:=LV.GetText(a_index,1), (ThisHotkey) => SetScaleFactor(ThisHotkey), 'ON'
 	}
 	MyGui.Hide()
 }
